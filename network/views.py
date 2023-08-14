@@ -26,8 +26,15 @@ def index(request):
 
 def profile_view(request, user_id):
     creator = User.objects.get(id=user_id)
-    follow = 'Follow'
-    
+    follow = ''
+    # if you dont follow
+    if request.user.is_authenticated:
+        if creator.followers.filter(id=request.user.id):
+            follow = 'Unfollow'
+        else:
+            # If you follow
+            follow = 'Follow'
+
     return render(request, 'network/profile.html',{
         'creator': creator,
         'creator_id': user_id,
