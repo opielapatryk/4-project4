@@ -1,0 +1,26 @@
+{% extends "network/layout.html" %}
+
+{% block body %}
+    {% if user.is_authenticated %}
+    <form action="{% url 'index' %}" method="post">
+        {% csrf_token %}
+        {{form}}
+        <input type="submit" value="Send">
+    </form>
+    {% endif %}
+
+    {% if posts %}
+        {% for post in posts|dictsortreversed:'id' %}
+            User: <a href="{% url 'profile_view' post.user.id %}">{{post.user}}</a> 
+            <br>
+            {{post.post}} 
+            <br>
+            {{post.timestamp}}
+            <br>
+            Likes: {{post.likes}}
+            <br>
+            <br>
+        {% endfor %}
+    {% endif %}
+
+{% endblock %}
