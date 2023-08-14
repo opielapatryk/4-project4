@@ -11,4 +11,8 @@ urlpatterns = [
     path("profile/<int:user_id>", views.profile_view, name="profile_view"),
     # post people that I follow
     path("following", views.following_view, name="following"),
+
+    # API Routes
+    path("edit", views.edit_post, name="edit_post"),
+    path("like", views.like_post, name="like_post"),
 ]

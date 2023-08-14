@@ -20,8 +20,22 @@
     <h1>Posts</h1>
     {% if posts_list %}
     {% for post in page_obj %}
-        {{post.post}}
+    <p style="display: none;" id="post_id">{{post.id}}</p>
+
+    <div id="post_container">
+        <p id="post">{{post.post}} </p>
+        <textarea name="post_textarea" id="post_textarea" cols="30" rows="10" style="display: none;">{{post.post}}</textarea>
+        <button id="save_edit" style="display: none;">Save</button>
+    </div>
+
+        {% if creator.id == user.id %}
+            <button id="edit_post">Edit</button>
+        {% endif %}
+        {% if user.is_authenticated %}
+                <button id="like_button">Like</button>
+            {% endif %}
         <br>
+        
     {% endfor %}
     <div class="pagination">
         <span class="step-links">

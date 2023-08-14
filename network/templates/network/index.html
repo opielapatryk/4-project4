@@ -11,15 +11,25 @@
 
     {% if posts_list %}
         {% for post in page_obj %}
+            <p style="display: none;" id="post_id">{{post.id}}</p>
             User: <a href="{% url 'profile_view' post.user.id %}">{{post.user}}</a> 
             <br>
-            {{post.post}} 
+            <div id="post_container">
+                <p id="post">{{post.post}} </p>
+                <textarea name="post_textarea" id="post_textarea" cols="30" rows="10" style="display: none;">{{post.post}}</textarea>
+                <button id="save_edit" style="display: none;">Save</button>
+            </div>
+            {% if post.user.id == user.id %}
+                <button id="edit_post">Edit</button> 
+                <!-- addeventlisterr change post content in textarea form  -->
+            {% endif %}
+            {% if user.is_authenticated %}
+                <button id="like_button">Like</button>
+                <span style="display: none;" id="user_id">{{user.id}}</span>
+            {% endif %}
             <br>
             {{post.timestamp}}
-            <br>
-            Likes: {{post.likes}}
-            <br>
-            <br>
+            <p>Likes: <span id="count_likes">{{post.likes}}</span></p>
         {% endfor %}
         <div class="pagination">
             <span class="step-links">

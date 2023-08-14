@@ -4,9 +4,12 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django import forms
-from .models import Post, User
+from .models import Post, User, Likes
 from django.core.paginator import Paginator
-
+from django.http import JsonResponse
+import json
+from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import get_object_or_404
 
 
 class CreateNewPostForm(forms.Form):
@@ -124,3 +127,46 @@ def register(request):
         return HttpResponseRedirect(reverse("index"))
     else:
         return render(request, "network/register.html")
+
+@csrf_exempt
+def edit_post(request):
+    # Editing post must be via POST
+    if request.method != "POST":
+        return JsonResponse({"error": "POST request required."}, status=400)
+
+    data = json.loads(request.body)
+    post_data = data.get('post')
+    post_id = data.get('id')
+    
+    post = Post.objects.get(id=post_id)  
+    post.post = post_data
+    post.save()
+
+    return JsonResponse({"message": post_data}, status=201)
+
+
+@csrf_exempt
+def like_post(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "POST request required."}, status=400)
+    
+    try:
+        data = json.loads(request.body)
+        post_id = data.get('post_id')
+        user_id = data.get('user_id')
+        
+        post = get_object_or_404(Post, id=post_id)
+        user = get_object_or_404(User, id=user_id)
+
+        # Check if the user has already liked the post
+        if Likes.objects.filter(user=user, post=post).exists():
+            return JsonResponse({"message": f"User has already liked this post.{user}" }, status=400)
+        
+        # Create a new like instance
+        like = Likes(post=post, user=user)
+        like.save()
+
+        return JsonResponse({"message": "Success"}, status=201)
+    
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
