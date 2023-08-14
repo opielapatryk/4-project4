@@ -5,6 +5,9 @@ from django.shortcuts import render
 from django.urls import reverse
 from django import forms
 from .models import Post, User
+from django.core.paginator import Paginator
+
+
 
 class CreateNewPostForm(forms.Form):
     post = forms.CharField(max_length=128,widget=forms.Textarea(attrs={'placeholder': 'How are you? :)'}))
@@ -19,9 +22,15 @@ def index(request):
             new_post.save()
             return HttpResponseRedirect(reverse("index"))
 
+    posts_list = Post.objects.all().order_by('-timestamp')
+    paginator = Paginator(posts_list, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     return render(request, "network/index.html",{
-        'posts':Post.objects.all(),
-        'form': CreateNewPostForm()
+        'form': CreateNewPostForm(),
+        'posts_list':posts_list,
+        'page_obj': page_obj
         })
 
 def profile_view(request, user_id):
@@ -35,11 +44,17 @@ def profile_view(request, user_id):
             # If you follow
             follow = 'Follow'
 
+    posts_list = Post.objects.filter(user=creator).order_by('-timestamp')
+    paginator = Paginator(posts_list, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
     return render(request, 'network/profile.html',{
         'creator': creator,
         'creator_id': user_id,
         'follow': follow,
-        'posts': Post.objects.filter(user=creator)
+        'posts_list':posts_list,
+        'page_obj': page_obj
     })
 
 def following_view(request):
@@ -49,10 +64,14 @@ def following_view(request):
         user_following = current_user.following.all()
         
         # Get posts from users that the current user follows
-        posts = Post.objects.filter(user__in=user_following).order_by('-timestamp')
-        
+        posts_list = Post.objects.filter(user__in=user_following).order_by('-timestamp')
+        paginator = Paginator(posts_list, 10)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+
         return render(request, 'network/following.html', {
-            'posts': posts,
+            'posts_list':posts_list,
+            'page_obj': page_obj
         })
 
 def login_view(request):
