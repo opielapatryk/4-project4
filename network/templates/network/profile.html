@@ -8,14 +8,14 @@
     Follows: {{creator.following.all|length}}
     <br>
     <!-- follow form  -->
-    <!-- {% if user.is_authenticated %}
-        {% if user.id == user_id %}
+    {% if user.is_authenticated %}
+        {% if not user.id == creator.id %}
         <form action="" method="POST">
             {% csrf_token %}
             <button type="submit" name="follow">{{ follow }}</button>
         </form>
         {% endif %}
-    {% endif %} -->
+    {% endif %}
     <br>
     <h1>Posts</h1>
     {% for post in posts|dictsortreversed:'id' %}
