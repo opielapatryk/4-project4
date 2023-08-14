@@ -42,6 +42,19 @@ def profile_view(request, user_id):
         'posts': Post.objects.filter(user=creator)
     })
 
+def following_view(request):
+    if request.user.is_authenticated:
+        # Get users that the current user follows
+        current_user = User.objects.get(id=request.user.id)
+        user_following = current_user.following.all()
+        
+        # Get posts from users that the current user follows
+        posts = Post.objects.filter(user__in=user_following).order_by('-timestamp')
+        
+        return render(request, 'network/following.html', {
+            'posts': posts,
+        })
+
 def login_view(request):
     if request.method == "POST":
 
