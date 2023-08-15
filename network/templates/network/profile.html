@@ -22,7 +22,7 @@
     {% for post in page_obj %}
         <p style="display: none;" id="post_id">{{post.id}}</p>
         {{post.timestamp}}
-<br>
+        <br>
         <div data-post-id="{{ post.id }}" id="post_container">
             <p id="post">{{post.post}} </p>
             <!-- delete textarea from all and add this dynamically  -->

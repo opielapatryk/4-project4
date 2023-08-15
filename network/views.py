@@ -40,8 +40,19 @@ def index(request):
         })
 
 def profile_view(request, user_id):
-    creator = User.objects.get(id=user_id)
     follow = ''
+    creator = User.objects.get(id=user_id)
+    current_user = User.objects.get(id=request.user.id)
+    if request.method == 'POST':
+        if creator.followers.filter(id=request.user.id):
+            # method for unfollow
+            creator.followers.remove(current_user)
+        else:
+            # method for follow
+            creator.followers.add(current_user)  
+
+        return HttpResponseRedirect(reverse("profile_view", args=(user_id,)))
+
     # if you dont follow
     if request.user.is_authenticated:
         if creator.followers.filter(id=request.user.id):
