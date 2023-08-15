@@ -26,14 +26,17 @@ def index(request):
             return HttpResponseRedirect(reverse("index"))
 
     posts_list = Post.objects.all().order_by('-timestamp')
+    for post in posts_list:
+        post.likes_count = Likes.objects.filter(post=post).count()
     paginator = Paginator(posts_list, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+    
 
     return render(request, "network/index.html",{
         'form': CreateNewPostForm(),
         'posts_list':posts_list,
-        'page_obj': page_obj
+        'page_obj': page_obj,
         })
 
 def profile_view(request, user_id):
@@ -48,6 +51,8 @@ def profile_view(request, user_id):
             follow = 'Follow'
 
     posts_list = Post.objects.filter(user=creator).order_by('-timestamp')
+    for post in posts_list:
+        post.likes_count = Likes.objects.filter(post=post).count()
     paginator = Paginator(posts_list, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -68,6 +73,8 @@ def following_view(request):
         
         # Get posts from users that the current user follows
         posts_list = Post.objects.filter(user__in=user_following).order_by('-timestamp')
+        for post in posts_list:
+            post.likes_count = Likes.objects.filter(post=post).count()
         paginator = Paginator(posts_list, 10)
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
@@ -166,7 +173,9 @@ def like_post(request):
         like = Likes(post=post, user=user)
         like.save()
 
-        return JsonResponse({"message": f"Success.user:{user} post:{post} post_id:{post_id} user_id:{user_id}"}, status=201)
+        new_likes_count = Likes.objects.filter(post=post).count()
+
+        return JsonResponse({"success": True, "new_likes_count": new_likes_count}, status=201)
     
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)

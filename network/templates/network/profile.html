@@ -21,7 +21,8 @@
     {% if posts_list %}
     {% for post in page_obj %}
         <p style="display: none;" id="post_id">{{post.id}}</p>
-
+        {{post.timestamp}}
+<br>
         <div data-post-id="{{ post.id }}" id="post_container">
             <p id="post">{{post.post}} </p>
             <!-- delete textarea from all and add this dynamically  -->
@@ -35,13 +36,15 @@
 
         
         {% if user.is_authenticated %}
+        <div id="likes">
+            <p>Likes: <span id="count_likes">{{ post.likes_count }}</span></p>
+
             <button id="like_button" data-post-id="{{ post.id }}">Like</button>
+
             <span style="display: none;" id="user_id">{{user.id}}</span>
-        {% endif %}
-        <br>
-        {{post.timestamp}}
-        <p>Likes: <span id="count_likes">{{post.likes}}</span></p>
+        </div>
         
+    {% endif %}
     {% endfor %}
     <div class="pagination">
         <span class="step-links">

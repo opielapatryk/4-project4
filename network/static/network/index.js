@@ -67,12 +67,10 @@ function editPost() {
 // like or not like post
 function likePost(){
     if(like_buttons){
-        count_likes = parseInt(count_likes.textContent)
+        count = parseInt(count_likes.textContent)
         like_buttons.forEach(button => {
             let postId = button.getAttribute('data-post-id');
             button.addEventListener('click',()=>{
-                
-                count_likes += 1
     
                 const likeObj = {
                     post_id: postId,
@@ -86,11 +84,13 @@ function likePost(){
                     body: JSONlikeObj
                 })
                 .then(resp => resp.json())
-                .then(result => {console.log(result);
+                .then(result => {
+                    console.log(result);
+                    if (result.success) {  // Assuming your server response indicates success
+                        // Update the likes count with the new value from the response
+                        button.parentElement.children[0].innerHTML = `Likes: ${result.new_likes_count}`
+                    }
                 });
-    
-                count_likes.textContent = count_likes
-                    
                 
             })
         });

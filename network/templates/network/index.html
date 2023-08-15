@@ -12,6 +12,8 @@
     {% if posts_list %}
         {% for post in page_obj %}
             <p style="display: none;" id="post_id">{{post.id}}</p>
+            {{post.timestamp}}
+<br>
             User: <a href="{% url 'profile_view' post.user.id %}">{{post.user}}</a> 
             <br>
             <div id="post_container">
@@ -26,12 +28,16 @@
             </div>
             
             {% if user.is_authenticated %}
-                <button id="like_button" data-post-id="{{ post.id }}">Like</button>
-                <span style="display: none;" id="user_id">{{user.id}}</span>
+                <div id="likes">
+                    <p>Likes: <span id="count_likes">{{ post.likes_count }}</span></p>
+
+                    <button id="like_button" data-post-id="{{ post.id }}">Like</button>
+    
+                    <span style="display: none;" id="user_id">{{user.id}}</span>
+                </div>
+                
             {% endif %}
-            <br>
-            {{post.timestamp}}
-            <p>Likes: <span id="count_likes">{{post.likes}}</span></p>
+
         {% endfor %}
         <div class="pagination">
             <span class="step-links">
