@@ -85,10 +85,11 @@ function likePost(){
                 })
                 .then(resp => resp.json())
                 .then(result => {
-                    console.log(result);
-                    if (result.success) {  // Assuming your server response indicates success
-                        // Update the likes count with the new value from the response
-                        button.parentElement.children[0].innerHTML = `Likes: ${result.new_likes_count}`
+                    if (result.success) {  
+                        console.log(result);
+
+                        button.parentElement.children[0].innerHTML = `Likes: <span id="count_likes">${result.new_likes_count}</span>`
+                        button.parentElement.children[1].innerHTML = result.like_btn_value
                     }
                 });
                 

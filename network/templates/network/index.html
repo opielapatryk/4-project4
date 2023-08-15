@@ -31,7 +31,7 @@
                 <div id="likes">
                     <p>Likes: <span id="count_likes">{{ post.likes_count }}</span></p>
 
-                    <button id="like_button" data-post-id="{{ post.id }}">Like</button>
+                    <button id="like_button" data-post-id="{{ post.id }}">{{post.like_btn}}</button>
     
                     <span style="display: none;" id="user_id">{{user.id}}</span>
                 </div>

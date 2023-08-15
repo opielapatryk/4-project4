@@ -26,12 +26,24 @@ def index(request):
             return HttpResponseRedirect(reverse("index"))
 
     posts_list = Post.objects.all().order_by('-timestamp')
+
     for post in posts_list:
         post.likes_count = Likes.objects.filter(post=post).count()
+
+        # Check if user likes this post
+        like_btn = "Like"  # Default value
+        if request.user.is_authenticated:
+            try:
+                like = Likes.objects.get(post=post, user=request.user)
+                like_btn = "Unlike"
+            except Likes.DoesNotExist:
+                pass
+
+        post.like_btn = like_btn
+
     paginator = Paginator(posts_list, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    
 
     return render(request, "network/index.html",{
         'form': CreateNewPostForm(),
@@ -42,16 +54,17 @@ def index(request):
 def profile_view(request, user_id):
     follow = ''
     creator = User.objects.get(id=user_id)
-    current_user = User.objects.get(id=request.user.id)
-    if request.method == 'POST':
-        if creator.followers.filter(id=request.user.id):
-            # method for unfollow
-            creator.followers.remove(current_user)
-        else:
-            # method for follow
-            creator.followers.add(current_user)  
+    if request.user.is_authenticated:
+        current_user = User.objects.get(id=request.user.id)
+        if request.method == 'POST':
+            if creator.followers.filter(id=request.user.id):
+                # method for unfollow
+                creator.followers.remove(current_user)
+            else:
+                # method for follow
+                creator.followers.add(current_user)  
 
-        return HttpResponseRedirect(reverse("profile_view", args=(user_id,)))
+            return HttpResponseRedirect(reverse("profile_view", args=(user_id,)))
 
     # if you dont follow
     if request.user.is_authenticated:
@@ -64,6 +77,17 @@ def profile_view(request, user_id):
     posts_list = Post.objects.filter(user=creator).order_by('-timestamp')
     for post in posts_list:
         post.likes_count = Likes.objects.filter(post=post).count()
+
+        # Check if user likes this post
+        like_btn = "Like"  # Default value
+        if request.user.is_authenticated:
+            try:
+                like = Likes.objects.get(post=post, user=request.user)
+                like_btn = "Unlike"
+            except Likes.DoesNotExist:
+                pass
+
+        post.like_btn = like_btn
     paginator = Paginator(posts_list, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -86,6 +110,17 @@ def following_view(request):
         posts_list = Post.objects.filter(user__in=user_following).order_by('-timestamp')
         for post in posts_list:
             post.likes_count = Likes.objects.filter(post=post).count()
+
+            # Check if user likes this post
+            like_btn = "Like"  # Default value
+            if request.user.is_authenticated:
+                try:
+                    like = Likes.objects.get(post=post, user=request.user)
+                    like_btn = "Unlike"
+                except Likes.DoesNotExist:
+                    pass
+
+            post.like_btn = like_btn
         paginator = Paginator(posts_list, 10)
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
@@ -94,6 +129,7 @@ def following_view(request):
             'posts_list':posts_list,
             'page_obj': page_obj
         })
+    return HttpResponseRedirect(reverse("index"))
 
 def login_view(request):
     if request.method == "POST":
@@ -176,17 +212,16 @@ def like_post(request):
         post = get_object_or_404(Post, id=post_id)
         user = get_object_or_404(User, id=user_id)
 
+        new_likes_count = Likes.objects.filter(post=post).count()
         # Check if the user has already liked the post
         if Likes.objects.filter(user=user, post=post).exists():
-            return JsonResponse({"message": f"User has already liked this post.user:{user} post:{post} post_id:{post_id} user_id:{user_id}" }, status=400)
-        
-        # Create a new like instance
-        like = Likes(post=post, user=user)
-        like.save()
-
-        new_likes_count = Likes.objects.filter(post=post).count()
-
-        return JsonResponse({"success": True, "new_likes_count": new_likes_count}, status=201)
+            Likes.objects.filter(user=user, post=post).delete()
+            return JsonResponse({"success": True, "new_likes_count": new_likes_count-1, "like_btn_value": "Like"}, status=201)
+        else:
+            # Create a new like instance
+            like = Likes(post=post, user=user)
+            like.save()
+            return JsonResponse({"success": True, "new_likes_count": new_likes_count+1, "like_btn_value": "Unlike"}, status=201)
     
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
