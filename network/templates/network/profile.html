@@ -20,21 +20,27 @@
     <h1>Posts</h1>
     {% if posts_list %}
     {% for post in page_obj %}
-    <p style="display: none;" id="post_id">{{post.id}}</p>
+        <p style="display: none;" id="post_id">{{post.id}}</p>
 
-    <div id="post_container">
-        <p id="post">{{post.post}} </p>
-        <textarea name="post_textarea" id="post_textarea" cols="30" rows="10" style="display: none;">{{post.post}}</textarea>
-        <button id="save_edit" style="display: none;">Save</button>
-    </div>
-
-        {% if creator.id == user.id %}
-            <button id="edit_post">Edit</button>
-        {% endif %}
-        {% if user.is_authenticated %}
-                <button id="like_button">Like</button>
+        <div data-post-id="{{ post.id }}" id="post_container">
+            <p id="post">{{post.post}} </p>
+            <!-- delete textarea from all and add this dynamically  -->
+            <textarea name="post_textarea" id="post_textarea" cols="30" rows="10" style="display: none;">{{post.post}}</textarea>
+            <button data-post-id="{{ post.id }}" id="save_edit" style="display: none;">Save</button>
+            {% if post.user.id == user.id %}
+                <button data-post-id="{{ post.id }}" id="edit_post">Edit</button> 
+                 <!-- addeventlisterr change post content in textarea form  -->
             {% endif %}
+        </div>
+
+        
+        {% if user.is_authenticated %}
+            <button id="like_button" data-post-id="{{ post.id }}">Like</button>
+            <span style="display: none;" id="user_id">{{user.id}}</span>
+        {% endif %}
         <br>
+        {{post.timestamp}}
+        <p>Likes: <span id="count_likes">{{post.likes}}</span></p>
         
     {% endfor %}
     <div class="pagination">

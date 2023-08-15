@@ -160,13 +160,13 @@ def like_post(request):
 
         # Check if the user has already liked the post
         if Likes.objects.filter(user=user, post=post).exists():
-            return JsonResponse({"message": f"User has already liked this post.{user}" }, status=400)
+            return JsonResponse({"message": f"User has already liked this post.user:{user} post:{post} post_id:{post_id} user_id:{user_id}" }, status=400)
         
         # Create a new like instance
         like = Likes(post=post, user=user)
         like.save()
 
-        return JsonResponse({"message": "Success"}, status=201)
+        return JsonResponse({"message": f"Success.user:{user} post:{post} post_id:{post_id} user_id:{user_id}"}, status=201)
     
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=500)
