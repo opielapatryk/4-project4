@@ -1,50 +1,54 @@
 from django.contrib.auth import authenticate, login, logout
 from django.db import IntegrityError
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 from django import forms
 from .models import Post, User, Likes
 from django.core.paginator import Paginator
 from django.http import JsonResponse
-import json
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import get_object_or_404
+import json
 
+# Functions
+def pagination(request, current_user,posts_list):
+    for post in posts_list:
+        post.likes_count = Likes.objects.filter(post=post).count() # assign ammount of likes to post.likes_count variable
+        like_btn = "Like"  # Default value of like/not like button
+        if current_user.is_authenticated: 
+            # Check if signed user likes this post
+            try:
+                like = Likes.objects.get(post=post, user=current_user)
+                like_btn = "Unlike" # If he likes.. then he can "Unlike" the post
+            except Likes.DoesNotExist:
+                pass # If he doesn't like then button stays on "Like"
 
+        post.like_btn = like_btn    # assign the value of button like/unlike
+
+    # Pagination settings
+    paginator = Paginator(posts_list, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return posts_list,page_obj
+
+# form for new posts
 class CreateNewPostForm(forms.Form):
     post = forms.CharField(max_length=128,widget=forms.Textarea(attrs={'placeholder': 'How are you? :)'}))
 
+# index view, displays all of the posts and form for creating new ones
 def index(request):
+    current_user = request.user
     if request.method == 'POST':
-        form = CreateNewPostForm(request.POST)
+        form = CreateNewPostForm(request.POST) # assign forms values to form variable 
         if form.is_valid():
-            post = form.cleaned_data['post']
-            user = User.objects.get(username=request.user)
+            post = form.cleaned_data['post'] 
+            user = User.objects.get(username=current_user) 
             new_post = Post(user=user, post=post)
             new_post.save()
             return HttpResponseRedirect(reverse("index"))
 
-    posts_list = Post.objects.all().order_by('-timestamp')
-
-    for post in posts_list:
-        post.likes_count = Likes.objects.filter(post=post).count()
-
-        # Check if user likes this post
-        like_btn = "Like"  # Default value
-        if request.user.is_authenticated:
-            try:
-                like = Likes.objects.get(post=post, user=request.user)
-                like_btn = "Unlike"
-            except Likes.DoesNotExist:
-                pass
-
-        post.like_btn = like_btn
-
-    paginator = Paginator(posts_list, 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-
+    posts_list, page_obj = pagination(request, current_user,Post.objects.all().order_by('-timestamp'))
     return render(request, "network/index.html",{
         'form': CreateNewPostForm(),
         'posts_list':posts_list,
@@ -52,45 +56,26 @@ def index(request):
         })
 
 def profile_view(request, user_id):
-    follow = ''
-    creator = User.objects.get(id=user_id)
-    if request.user.is_authenticated:
-        current_user = User.objects.get(id=request.user.id)
-        if request.method == 'POST':
-            if creator.followers.filter(id=request.user.id):
-                # method for unfollow
-                creator.followers.remove(current_user)
-            else:
-                # method for follow
-                creator.followers.add(current_user)  
-
-            return HttpResponseRedirect(reverse("profile_view", args=(user_id,)))
-
-    # if you dont follow
-    if request.user.is_authenticated:
-        if creator.followers.filter(id=request.user.id):
+    current_user = request.user
+    follow = '' # Value fo follow button
+    creator = User.objects.get(id=user_id) # Creator of post
+    
+    if current_user.is_authenticated:
+        current_user_obj = User.objects.get(id=current_user.id)
+        if creator.followers.filter(id=current_user.id):
+            # method for unfollow
             follow = 'Unfollow'
+            if request.method == 'POST':
+                creator.followers.remove(current_user_obj)
+                return HttpResponseRedirect(reverse("profile_view", args=(user_id,)))
         else:
-            # If you follow
+            # method for follow
             follow = 'Follow'
+            if request.method == 'POST':
+                creator.followers.add(current_user_obj)  
+                return HttpResponseRedirect(reverse("profile_view", args=(user_id,)))
 
-    posts_list = Post.objects.filter(user=creator).order_by('-timestamp')
-    for post in posts_list:
-        post.likes_count = Likes.objects.filter(post=post).count()
-
-        # Check if user likes this post
-        like_btn = "Like"  # Default value
-        if request.user.is_authenticated:
-            try:
-                like = Likes.objects.get(post=post, user=request.user)
-                like_btn = "Unlike"
-            except Likes.DoesNotExist:
-                pass
-
-        post.like_btn = like_btn
-    paginator = Paginator(posts_list, 10)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    posts_list, page_obj = pagination(request, current_user,Post.objects.filter(user=creator).order_by('-timestamp'))
     
     return render(request, 'network/profile.html',{
         'creator': creator,
@@ -101,30 +86,14 @@ def profile_view(request, user_id):
     })
 
 def following_view(request):
-    if request.user.is_authenticated:
+    current_user = request.user
+    if current_user.is_authenticated:
         # Get users that the current user follows
-        current_user = User.objects.get(id=request.user.id)
+        current_user = User.objects.get(id=current_user.id)
         user_following = current_user.following.all()
         
-        # Get posts from users that the current user follows
-        posts_list = Post.objects.filter(user__in=user_following).order_by('-timestamp')
-        for post in posts_list:
-            post.likes_count = Likes.objects.filter(post=post).count()
-
-            # Check if user likes this post
-            like_btn = "Like"  # Default value
-            if request.user.is_authenticated:
-                try:
-                    like = Likes.objects.get(post=post, user=request.user)
-                    like_btn = "Unlike"
-                except Likes.DoesNotExist:
-                    pass
-
-            post.like_btn = like_btn
-        paginator = Paginator(posts_list, 10)
-        page_number = request.GET.get('page')
-        page_obj = paginator.get_page(page_number)
-
+        posts_list, page_obj = pagination(request, current_user,Post.objects.filter(user__in=user_following).order_by('-timestamp'))
+        
         return render(request, 'network/following.html', {
             'posts_list':posts_list,
             'page_obj': page_obj
@@ -133,7 +102,6 @@ def following_view(request):
 
 def login_view(request):
     if request.method == "POST":
-
         # Attempt to sign user in
         username = request.POST["username"]
         password = request.POST["password"]
@@ -184,8 +152,7 @@ def register(request):
 
 @csrf_exempt
 def edit_post(request):
-    # Editing post must be via POST
-    if request.method != "POST":
+    if request.method != "POST": # Editing post must be via POST
         return JsonResponse({"error": "POST request required."}, status=400)
 
     data = json.loads(request.body)
@@ -201,27 +168,23 @@ def edit_post(request):
 
 @csrf_exempt
 def like_post(request):
-    if request.method != "POST":
+    if request.method != "POST": # Liking post must be via POST
         return JsonResponse({"error": "POST request required."}, status=400)
     
-    try:
-        data = json.loads(request.body)
-        post_id = data.get('post_id')
-        user_id = data.get('user_id')
-        
-        post = get_object_or_404(Post, id=post_id)
-        user = get_object_or_404(User, id=user_id)
-
-        new_likes_count = Likes.objects.filter(post=post).count()
-        # Check if the user has already liked the post
-        if Likes.objects.filter(user=user, post=post).exists():
-            Likes.objects.filter(user=user, post=post).delete()
-            return JsonResponse({"success": True, "new_likes_count": new_likes_count-1, "like_btn_value": "Like"}, status=201)
-        else:
-            # Create a new like instance
-            like = Likes(post=post, user=user)
-            like.save()
-            return JsonResponse({"success": True, "new_likes_count": new_likes_count+1, "like_btn_value": "Unlike"}, status=201)
+    data = json.loads(request.body)
+    post_id = data.get('post_id')
+    user_id = data.get('user_id')
     
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
+    post = get_object_or_404(Post, id=post_id)
+    user = get_object_or_404(User, id=user_id)
+
+    new_likes_count = Likes.objects.filter(post=post).count()
+    # Check if the user has already liked the post
+    if Likes.objects.filter(user=user, post=post).exists():
+        Likes.objects.filter(user=user, post=post).delete()
+        return JsonResponse({"success": True, "new_likes_count": new_likes_count-1, "like_btn_value": "Like"}, status=201)
+    else:
+        # Create a new like instance
+        like = Likes(post=post, user=user)
+        like.save()
+        return JsonResponse({"success": True, "new_likes_count": new_likes_count+1, "like_btn_value": "Unlike"}, status=201)
