@@ -20,17 +20,17 @@ function editPost() {
 
             button.addEventListener('click',()=>{
                 // hide post paragraph, show textarea
-            if(post_textarea.style.display == 'none')
+            if(button.parentElement.children[1].style.display == 'none')
             {
                 button.parentElement.children[0].style.display = 'none'
                 button.parentElement.children[1].style.display = 'block'
                 button.parentElement.children[2].style.display = 'block'
                 button.parentElement.children[3].innerHTML = 'Cancel'
             }else{
-                post.style.display = 'block'
-                post_textarea.style.display = 'none'
-                edit_post.innerHTML = 'Edit'
-                save_edit.style.display = 'none'
+                button.parentElement.children[0].style.display = 'block'
+                button.parentElement.children[1].style.display = 'none'
+                button.parentElement.children[2].style.display = 'none'
+                button.parentElement.children[3].innerHTML = 'Edit'
             }
             save_edit.forEach(button => {
                 button.addEventListener('click', ()=>{
@@ -58,6 +58,8 @@ function editPost() {
                 })
                 
             });
+
+
             })
             
         });

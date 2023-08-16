@@ -34,7 +34,7 @@ def pagination(request, current_user,posts_list):
 
 # form for new posts
 class CreateNewPostForm(forms.Form):
-    post = forms.CharField(max_length=128,widget=forms.Textarea(attrs={'placeholder': 'How are you? :)'}))
+    post = forms.CharField(max_length=128,widget=forms.Textarea(attrs={'placeholder': 'How are you? :)','rows':1}),label='')
 
 # index view, displays all of the posts and form for creating new ones
 def index(request):
