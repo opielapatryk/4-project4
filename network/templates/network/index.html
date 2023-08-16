@@ -2,16 +2,17 @@
 
 {% block body %}
     {% if user.is_authenticated %}
-    <form action="{% url 'index' %}" method="post">
+    <form action="{% url 'index' %}" method="post" id="post_form">
         {% csrf_token %}
         {{form}}
-        <input type="submit" value="Send">
+        <input type="submit" value="Send" class="btn btn-primary">
     </form>
     {% endif %}
 
     {% if posts_list %}
         {% for post in page_obj %}
-            <p style="display: none;" id="post_id">{{post.id}}</p>
+        <div id="post_content">
+            <p style="display: none; " id="post_id">{{post.id}}</p>
             {{post.timestamp}}
 <br>
             User: <a href="{% url 'profile_view' post.user.id %}">{{post.user}}</a> 
@@ -20,9 +21,9 @@
                 <p id="post" >{{post.post}} </p>
                 <!-- delete textarea from all and add this dynamically  -->
                 <textarea name="post_textarea" id="post_textarea" cols="30" rows="10" style="display: none;">{{post.post}}</textarea>
-                <button data-post-id="{{ post.id }}" id="save_edit" style="display: none;">Save</button>
+                <button class="btn btn-success" data-post-id="{{ post.id }}" id="save_edit" style="display: none;">Save</button>
                 {% if post.user.id == user.id %}
-                    <button data-post-id="{{ post.id }}" id="edit_post">Edit</button> 
+                    <button class="btn btn-info" data-post-id="{{ post.id }}" id="edit_post">Edit</button> 
                     <!-- addeventlisterr change post content in textarea form  -->
                 {% endif %}
             </div>
@@ -31,13 +32,13 @@
                 <div id="likes">
                     <p>Likes: <span id="count_likes">{{ post.likes_count }}</span></p>
 
-                    <button id="like_button" data-post-id="{{ post.id }}">{{post.like_btn}}</button>
+                    <button class="btn btn-primary" id="like_button" data-post-id="{{ post.id }}">{{post.like_btn}}</button>
     
                     <span style="display: none;" id="user_id">{{user.id}}</span>
                 </div>
-                
+            
             {% endif %}
-
+        </div>
         {% endfor %}
         <div class="pagination">
             <span class="step-links">

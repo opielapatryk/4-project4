@@ -4,3 +4,19 @@
     width: 80vw;
     margin: auto;
 }
+
+#post_form{
+    margin-top: 1vh;
+    padding: 1em;
+    display: flex;
+    justify-content: center;
+    gap:1%;
+}
+
+
+#post_content{
+    border: solid rgb(211, 211, 211) 1px;
+    margin: 1vh 0;
+    border-radius: 10px;
+    padding: 1em;
+}

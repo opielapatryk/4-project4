@@ -1,23 +1,22 @@
 {% extends "network/layout.html" %}
 
 {% block body %}
-    Username: {{creator.username}}
+    <h3>Username</h3> {{creator.username}}
     <br>
-    Followers: {{creator.followers.all|length}}
+    <h3>Followers</h3> {{creator.followers.all|length}}
     <br>
-    Follows: {{creator.following.all|length}}
+    <h3>Follows</h3> {{creator.following.all|length}}
     <br>
     <!-- follow form  -->
     {% if user.is_authenticated %}
         {% if not user.id == creator.id %}
         <form action="" method="POST">
             {% csrf_token %}
-            <button type="submit" name="follow">{{ follow }}</button>
+            <button class="btn btn-info" type="submit" name="follow">{{ follow }}</button>
         </form>
         {% endif %}
     {% endif %}
     <br>
-    <h1>Posts</h1>
     {% if posts_list %}
     {% for post in page_obj %}
         <p style="display: none;" id="post_id">{{post.id}}</p>
@@ -27,9 +26,9 @@
             <p id="post">{{post.post}} </p>
             <!-- delete textarea from all and add this dynamically  -->
             <textarea name="post_textarea" id="post_textarea" cols="30" rows="10" style="display: none;">{{post.post}}</textarea>
-            <button data-post-id="{{ post.id }}" id="save_edit" style="display: none;">Save</button>
+            <button class="btn btn-success" data-post-id="{{ post.id }}" id="save_edit" style="display: none;">Save</button>
             {% if post.user.id == user.id %}
-                <button data-post-id="{{ post.id }}" id="edit_post">Edit</button> 
+                <button class="btn btn-info"  data-post-id="{{ post.id }}" id="edit_post">Edit</button> 
                  <!-- addeventlisterr change post content in textarea form  -->
             {% endif %}
         </div>
@@ -39,7 +38,7 @@
         <div id="likes">
             <p>Likes: <span id="count_likes">{{ post.likes_count }}</span></p>
 
-            <button id="like_button" data-post-id="{{ post.id }}">{{post.like_btn}}</button>
+            <button class="btn btn-primary" id="like_button" data-post-id="{{ post.id }}">{{post.like_btn}}</button>
 
             <span style="display: none;" id="user_id">{{user.id}}</span>
         </div>

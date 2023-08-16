@@ -1,12 +1,9 @@
-const post_container = document.querySelector('#post_container')
 const edit_post = document.querySelectorAll('#edit_post')
-const post = document.querySelector('#post')
-const post_textarea = document.querySelector('#post_textarea')
 const save_edit = document.querySelectorAll('#save_edit')
-const post_id = document.querySelector('#post_id')
 const like_buttons = document.querySelectorAll('#like_button')
 const user_id = document.querySelector('#user_id')
 let count_likes = document.querySelector('#count_likes')
+
 document.addEventListener('DOMContentLoaded', ()=>{
     editPost();
     likePost();
